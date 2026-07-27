@@ -3,6 +3,12 @@
 # config/config.php on each server and fill in that server's details.
 config/config.php
 
+# One-off data scripts: these hold real member names, login emails and
+# password hashes, so they must never be published. Keep them local.
+restore-data.sql
+*-data.sql
+*.private.sql
+
 # ---- User-uploaded content -------------------------------------------
 # Keep the folders (and their .htaccess / index.html) but not the files
 # that members upload at runtime.

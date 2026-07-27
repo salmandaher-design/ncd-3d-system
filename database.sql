@@ -1,4 +1,15 @@
 -- =====================================================================
+--  ####################################################################
+--  ##  WARNING — THIS FILE ERASES ALL EXISTING DATA                  ##
+--  ##                                                                ##
+--  ##  It DROPs every table and recreates them with demo data.       ##
+--  ##  Use it ONLY for a brand-new, empty installation.              ##
+--  ##                                                                ##
+--  ##  If the system is ALREADY IN USE, do NOT run this file —       ##
+--  ##  run `upgrade.sql` instead. It adds new columns/tables and     ##
+--  ##  keeps all your teams, members and requests.                   ##
+--  ####################################################################
+-- =====================================================================
 --  NCD 3D Print — MySQL / MariaDB schema + sample data
 -- ---------------------------------------------------------------------
 --  HOW TO IMPORT

@@ -98,6 +98,9 @@ See **[INSTALL.md](INSTALL.md)** for full step-by-step instructions (InfinityFre
 local XAMPP). In short:
 
 1. Create a MySQL database and import `database.sql`.
+   ⚠️ **Only for a new, empty database — `database.sql` drops every table and
+   erases existing data.** On a system already in use, import **`upgrade.sql`**
+   instead; it adds what's new and keeps your teams, members and requests.
 2. Copy `config/config.sample.php` to `config/config.php` and fill in your database
    host / name / user / password. (`config/config.php` is gitignored so real
    credentials are never committed.)
