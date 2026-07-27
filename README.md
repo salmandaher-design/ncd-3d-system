@@ -144,7 +144,14 @@ WHERE email = 'admin@ncd.sy';
 - Each request can be exported as an official Arabic print form (letterhead with the three
   logos) once the admin has responded — including a rejection version with the reasons.
 - The center has exactly two printers by design — no complex printer management.
-# ncd-3d-system
-# ncd-3d-system
-# ncd-3d-system
-# ncd-3d-system
+
+---
+
+## 🚢 Deployment
+
+Pushing to `main` triggers the **Deploy to InfinityFree** GitHub Actions workflow
+(`.github/workflows/deploy.yml`), which uploads the repository to `htdocs/` over FTP
+using the `FTP_SERVER` / `FTP_USERNAME` / `FTP_PASSWORD` repository secrets.
+
+Note that `config/config.php` is **not** in the repository, so the deployment never
+overwrites the credentials already present on the server.
