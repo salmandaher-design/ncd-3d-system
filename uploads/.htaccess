@@ -1,0 +1,7 @@
+# Never execute code from the uploads folder, and do not list it.
+# (Avoids php_flag, which some shared hosts reject with a 500 error.)
+Options -Indexes
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phps|phar|pl|py|cgi|asp|aspx|sh|exe|htaccess)$">
+    Require all denied
+</FilesMatch>

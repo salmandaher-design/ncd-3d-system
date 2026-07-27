@@ -31,6 +31,13 @@ Composer, no Node, no build step. Just upload the files and import one SQL file.
 - Search & filter requests by project, team, status, priority
 - Activity log
 
+**News banner (both roles)**
+- The dashboard opens with a photo banner (shaded gradient overlay) showing the **latest news**,
+  its **date/time** and author — visible to admins and team members alike
+- The admin can publish an update (title, text, optional new image) straight from the banner;
+  the previous item moves automatically into **الأخبار السابقة** (the news archive at `/news`)
+- **Share on WhatsApp** button — admins only
+
 **Design** — modern minimal UI inspired by GitHub / Notion / Linear: rounded cards,
 clean tables, blue accent, responsive layout, and a **light/dark theme toggle**.
 
@@ -80,7 +87,7 @@ No Laravel, Composer, Node, React/Vue/Angular, Docker, Redis, WebSockets, or SSH
 └── uploads/             # images/ and files/ (writable; protected by .htaccess)
 ```
 
-**Database tables:** `users`, `teams`, `requests`, `request_files`, `filament`,
+**Database tables:** `users`, `teams`, `requests`, `request_files`, `filament`, `news`,
 `printers`, `activity_logs` (normalized, InnoDB, with foreign keys).
 
 ---
@@ -91,7 +98,9 @@ See **[INSTALL.md](INSTALL.md)** for full step-by-step instructions (InfinityFre
 local XAMPP). In short:
 
 1. Create a MySQL database and import `database.sql`.
-2. Edit `config/config.php` with your database host / name / user / password.
+2. Copy `config/config.sample.php` to `config/config.php` and fill in your database
+   host / name / user / password. (`config/config.php` is gitignored so real
+   credentials are never committed.)
 3. Upload all files to your web root (e.g. `htdocs`).
 4. Make sure `uploads/` is writable.
 5. Open the site and sign in with the admin account above.

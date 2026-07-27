@@ -1,0 +1,29 @@
+# ---- Secrets ----------------------------------------------------------
+# Real database credentials. Copy config/config.sample.php to
+# config/config.php on each server and fill in that server's details.
+config/config.php
+
+# ---- User-uploaded content -------------------------------------------
+# Keep the folders (and their .htaccess / index.html) but not the files
+# that members upload at runtime.
+uploads/images/*
+uploads/files/*
+!uploads/images/index.html
+!uploads/files/index.html
+!uploads/.htaccess
+!uploads/index.html
+
+# ---- OS / editor noise ------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# ---- Local backups / logs --------------------------------------------
+*.bak
+*.log
+*.tmp

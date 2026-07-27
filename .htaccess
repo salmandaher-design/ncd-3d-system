@@ -1,0 +1,19 @@
+# ---- Pretty URLs: route everything through index.php ----
+RewriteEngine On
+
+# If the request is not a real file or directory, hand it to the router.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+# ---- Basic hardening ----
+# Do not list directory contents.
+Options -Indexes
+
+# Block access to sensitive folders/files just in case.
+<FilesMatch "\.(sql|md|log)$">
+    Require all denied
+</FilesMatch>
+
+# Default document
+DirectoryIndex index.php
