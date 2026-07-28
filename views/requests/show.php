@@ -7,6 +7,26 @@ $st = $request['status'];
 $flow = ['Submitted', 'Approved', 'Printing', 'Completed'];
 $currentIndex = array_search($st, $flow, true);
 $isTerminalBad = in_array($st, ['Rejected', 'Cancelled'], true);
+
+// ----- WhatsApp status message (admin notify) -----
+$waAr = [
+    'Approved'  => 'تمت الموافقة على طلب الطباعة الخاص بكم',
+    'Printing'  => 'طلب الطباعة الخاص بكم قيد التنفيذ الآن',
+    'Completed' => 'تم إنجاز طلب الطباعة الخاص بكم، ويمكنكم استلامه',
+    'Rejected'  => 'نعتذر، تم رفض طلب الطباعة الخاص بكم',
+];
+$waMessage = '';
+if (isset($waAr[$st])) {
+    $lines = [
+        ($request['requester_name'] ?? '') !== '' ? 'مرحباً ' . $request['requester_name'] . '،' : 'مرحباً،',
+        $waAr[$st] . ': «' . $request['project_name'] . '»',
+    ];
+    if (($request['transaction_no'] ?? '') !== '') $lines[] = 'رقم المعاملة: ' . $request['transaction_no'];
+    if ($st === 'Rejected' && ($request['admin_notes'] ?? '') !== '') $lines[] = 'السبب: ' . $request['admin_notes'];
+    $lines[] = 'لمتابعة الطلب: ' . full_url('requests/show/' . $request['id']);
+    $lines[] = '— ' . APP_FULL_NAME;
+    $waMessage = implode("\n", $lines);
+}
 ?>
 
 <div class="page-head">
@@ -86,6 +106,48 @@ $isTerminalBad = in_array($st, ['Rejected', 'Cancelled'], true);
                 <?php endforeach; endif; ?>
             </div>
         </div>
+
+        <!-- Discussion thread (both roles) -->
+        <div class="card2" id="comments">
+            <div class="card2-head"><i class="bi bi-chat-dots"></i> Discussion
+                <span class="badge2 status-submitted" style="margin-left:auto;"><?= count($comments) ?></span>
+            </div>
+            <div class="card2-body tight">
+                <?php if (!$comments): ?>
+                    <div class="empty" style="padding:24px;"><i class="bi bi-chat"></i>No messages yet — start the conversation below.</div>
+                <?php else: foreach ($comments as $c):
+                    $mine = (int) ($c['user_id'] ?? 0) === Auth::id();
+                    $adminAuthor = ($c['author_role'] ?? '') === 'admin'; ?>
+                    <div class="comment <?= $mine ? 'mine' : '' ?>">
+                        <span class="avatar" style="width:32px; height:32px; font-size:12px;">
+                            <?= e(strtoupper(mb_substr($c['author_name'] ?? '?', 0, 1))) ?>
+                        </span>
+                        <div class="comment-body">
+                            <div class="comment-meta">
+                                <strong><?= e($c['author_name'] ?? 'Unknown') ?></strong>
+                                <?php if ($adminAuthor): ?>
+                                    <span class="badge2 status-approved" style="padding:1px 7px; font-size:10px;">Admin</span>
+                                <?php endif; ?>
+                                <span class="comment-time"><?= fmt_datetime($c['created_at']) ?></span>
+                            </div>
+                            <div class="comment-text" dir="auto"><?= nl2br(e($c['body'])) ?></div>
+                        </div>
+                    </div>
+                <?php endforeach; endif; ?>
+
+                <div style="padding:14px 16px; border-top:1px solid var(--border);">
+                    <form method="post" action="<?= url('requests/comment/' . $request['id']) ?>">
+                        <?= Csrf::field() ?>
+                        <div class="field" style="margin:0 0 10px;">
+                            <textarea class="textarea" name="body" rows="2" required dir="auto"
+                                      style="min-height:64px;"
+                                      placeholder="Write a message to <?= $isAdmin ? 'the team' : 'the lab' ?>…"></textarea>
+                        </div>
+                        <button class="btn2 primary sm"><i class="bi bi-send"></i> Send message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- RIGHT: workflow -->
@@ -133,6 +195,31 @@ $isTerminalBad = in_array($st, ['Rejected', 'Cancelled'], true);
                 <?php endif; ?>
             </div>
         </div>
+        <?php endif; ?>
+
+        <?php if ($isAdmin && $waMessage !== ''): ?>
+            <!-- ADMIN: WhatsApp status ping -->
+            <div class="card2">
+                <div class="card2-head"><i class="bi bi-whatsapp" style="color:#25D366;"></i> Notify requester</div>
+                <div class="card2-body">
+                    <?php if (!empty($request['requester_phone'])): ?>
+                        <div class="hint" style="margin-bottom:10px;">
+                            Opens WhatsApp to <?= e($request['requester_name']) ?> · <?= e($request['requester_phone']) ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="hint" style="margin-bottom:10px;">
+                            No WhatsApp number on file — WhatsApp will ask you to choose the chat.
+                            Add one on the <a href="<?= url('users') ?>">Members</a> page.
+                        </div>
+                    <?php endif; ?>
+                    <a class="btn2 block" style="background:#25D366; border-color:#25D366; color:#fff;"
+                       target="_blank" rel="noopener"
+                       href="<?= e(wa_url($waMessage, $request['requester_phone'] ?? null)) ?>">
+                        <i class="bi bi-whatsapp"></i> Send status on WhatsApp
+                    </a>
+                    <div class="hint" style="margin-top:8px;">You review and tap send — nothing is sent automatically.</div>
+                </div>
+            </div>
         <?php endif; ?>
 
         <?php if ($isAdmin): ?>

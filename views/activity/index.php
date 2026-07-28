@@ -10,6 +10,7 @@ $icons = [
     'filament_create' => 'palette', 'filament_update' => 'palette', 'filament_delete' => 'trash',
     'printer_update' => 'printer', 'printer_free' => 'stop-circle',
     'news_publish' => 'megaphone', 'news_update' => 'pencil-square', 'news_delete' => 'trash',
+    'request_comment' => 'chat-dots',
 ];
 ?>
 

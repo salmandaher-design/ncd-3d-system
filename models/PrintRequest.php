@@ -18,6 +18,7 @@ class PrintRequest extends Model
         return "SELECT r.*,
                        t.name  AS team_name,
                        u.name  AS requester_name,
+                       u.phone AS requester_phone,
                        p.name  AS printer_name,
                        f.color AS filament_color
                 FROM requests r

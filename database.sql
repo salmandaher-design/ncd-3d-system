@@ -34,6 +34,7 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `activity_logs`;
 DROP TABLE IF EXISTS `news`;
+DROP TABLE IF EXISTS `request_comments`;
 DROP TABLE IF EXISTS `request_files`;
 DROP TABLE IF EXISTS `requests`;
 DROP TABLE IF EXISTS `users`;
@@ -91,6 +92,7 @@ CREATE TABLE `users` (
     `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name`       VARCHAR(120) NOT NULL,
     `email`      VARCHAR(160) NOT NULL,
+    `phone`      VARCHAR(30)  DEFAULT NULL,   -- WhatsApp number for status pings
     `password`   VARCHAR(255) NOT NULL,
     `role`       ENUM('admin','member') NOT NULL DEFAULT 'member',
     `team_id`    INT UNSIGNED DEFAULT NULL,
@@ -154,6 +156,22 @@ CREATE TABLE `request_files` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
+-- request_comments  (two-way discussion thread per request)
+-- ---------------------------------------------------------------------
+CREATE TABLE `request_comments` (
+    `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `request_id` INT UNSIGNED NOT NULL,
+    `user_id`    INT UNSIGNED DEFAULT NULL,
+    `body`       TEXT NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rc_request` (`request_id`),
+    KEY `idx_rc_user` (`user_id`),
+    CONSTRAINT `fk_rc_request` FOREIGN KEY (`request_id`) REFERENCES `requests`(`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rc_user`    FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`)    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
 -- news  (dashboard banner + news archive)
 --   The most recent row is shown as the dashboard banner; older rows
 --   automatically become "الأخبار القديمة".
@@ -205,11 +223,11 @@ INSERT INTO `filament` (`id`,`color`,`material`,`remaining_weight`,`spools`,`loc
 (4,'Custom','PLA',1200.0,2,'Shelf B2','Currently loaded: blue');
 
 -- Passwords: admin = admin123 ; members = member123  (bcrypt, $2y$)
-INSERT INTO `users` (`id`,`name`,`email`,`password`,`role`,`team_id`,`is_active`) VALUES
-(1,'System Administrator','admin@ncd.sy','$2y$10$smqCZ4YQwFuFYVj7cjuOyupRwyu8HEbkTI65OtJKwHQait5eoieUS','admin',NULL,1),
-(2,'Ahmad Saleh','ahmad@ncd.sy','$2y$10$sH/.cH7CrwkkehjUtchu5uvgRYKB.euUF0K93cvXzXwQpMe20nuQ2','member',1,1),
-(3,'Rana Deeb','rana@ncd.sy','$2y$10$5G4nc8aWeY4u4IMqJRBAZ.SiPJ2juADdt5/mfiUa9UwE.k.CubA76','member',2,1),
-(4,'Yousef Ali','yousef@ncd.sy','$2y$10$1O4rEpVeygGe6ByoPuiOA.WbnoBKNGh91LZ1q0q0cbuJbDtnrJnVK','member',3,1);
+INSERT INTO `users` (`id`,`name`,`email`,`phone`,`password`,`role`,`team_id`,`is_active`) VALUES
+(1,'System Administrator','admin@ncd.sy',NULL,'$2y$10$smqCZ4YQwFuFYVj7cjuOyupRwyu8HEbkTI65OtJKwHQait5eoieUS','admin',NULL,1),
+(2,'Ahmad Saleh','ahmad@ncd.sy','0912345678','$2y$10$sH/.cH7CrwkkehjUtchu5uvgRYKB.euUF0K93cvXzXwQpMe20nuQ2','member',1,1),
+(3,'Rana Deeb','rana@ncd.sy','0923456789','$2y$10$5G4nc8aWeY4u4IMqJRBAZ.SiPJ2juADdt5/mfiUa9UwE.k.CubA76','member',2,1),
+(4,'Yousef Ali','yousef@ncd.sy','0934567890','$2y$10$1O4rEpVeygGe6ByoPuiOA.WbnoBKNGh91LZ1q0q0cbuJbDtnrJnVK','member',3,1);
 
 INSERT INTO `requests`
 (`id`,`user_id`,`team_id`,`project_name`,`description`,`priority`,`color`,`status`,`image_path`,`estimated_weight`,`actual_weight`,`admin_notes`,`printer_id`,`filament_id`,`created_at`,`updated_at`) VALUES
@@ -233,6 +251,11 @@ INSERT INTO `news` (`title`,`content`,`image_path`,`user_id`,`created_at`) VALUE
 ('افتتاح مخبر الروبوت والذكاء الصنعي','يسر المركز الوطني للمتميزين الإعلان عن تجهيز مخبر الروبوت والذكاء الصنعي بطابعتين ثلاثيتي الأبعاد من نوع Bambu Lab، وهي متاحة الآن لجميع فرق الروبوتات عبر هذا النظام.',NULL,1,DATE_SUB(NOW(),INTERVAL 20 DAY)),
 ('تعليمات تسليم ملفات الطباعة','نرجو من جميع الفرق إرفاق ملفات STL أو 3MF بدقة، والتأكد من أبعاد القطعة قبل إرسال الطلب لتفادي إعادة الطباعة وهدر الفيلامنت.',NULL,1,DATE_SUB(NOW(),INTERVAL 7 DAY)),
 ('جاهزية المخبر لاستقبال طلبات الطباعة','المخبر جاهز لاستقبال طلباتكم لهذا الفصل. يُرجى تقديم الطلبات قبل موعد المسابقة بأسبوعين على الأقل لضمان إنجازها في الوقت المناسب.',NULL,1,DATE_SUB(NOW(),INTERVAL 1 DAY));
+
+-- Sample discussion thread on request #3
+INSERT INTO `request_comments` (`request_id`,`user_id`,`body`,`created_at`) VALUES
+(3,1,'الرجاء التأكد من أبعاد القطعة، يبدو أن التفاوت ضيق قليلاً.',DATE_SUB(NOW(),INTERVAL 4 DAY)),
+(3,2,'تم تعديل التفاوت وإعادة رفع الملف. شكراً لكم.',DATE_SUB(NOW(),INTERVAL 4 DAY));
 
 INSERT INTO `activity_logs` (`user_id`,`action`,`description`,`created_at`) VALUES
 (1,'request_complete','Completed request #6 (118 g used)',DATE_SUB(NOW(),INTERVAL 62 DAY)),

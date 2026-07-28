@@ -22,11 +22,12 @@ class User extends Model
     public function create(array $d): int
     {
         $this->run(
-            "INSERT INTO users (name, email, password, role, team_id, is_active, created_at)
-             VALUES (?,?,?,?,?,?,NOW())",
+            "INSERT INTO users (name, email, phone, password, role, team_id, is_active, created_at)
+             VALUES (?,?,?,?,?,?,?,NOW())",
             [
                 $d['name'],
                 $d['email'],
+                ($d['phone'] ?? '') !== '' ? $d['phone'] : null,
                 password_hash($d['password'], PASSWORD_DEFAULT),
                 $d['role'],
                 $d['team_id'] !== '' ? $d['team_id'] : null,
@@ -39,11 +40,12 @@ class User extends Model
     public function update(int $id, array $d): void
     {
         // Update password only when a new one is supplied.
+        $phone = ($d['phone'] ?? '') !== '' ? $d['phone'] : null;
         if (!empty($d['password'])) {
             $this->run(
-                "UPDATE users SET name=?, email=?, role=?, team_id=?, is_active=?, password=? WHERE id=?",
+                "UPDATE users SET name=?, email=?, phone=?, role=?, team_id=?, is_active=?, password=? WHERE id=?",
                 [
-                    $d['name'], $d['email'], $d['role'],
+                    $d['name'], $d['email'], $phone, $d['role'],
                     $d['team_id'] !== '' ? $d['team_id'] : null,
                     $d['is_active'] ?? 1,
                     password_hash($d['password'], PASSWORD_DEFAULT),
@@ -52,9 +54,9 @@ class User extends Model
             );
         } else {
             $this->run(
-                "UPDATE users SET name=?, email=?, role=?, team_id=?, is_active=? WHERE id=?",
+                "UPDATE users SET name=?, email=?, phone=?, role=?, team_id=?, is_active=? WHERE id=?",
                 [
-                    $d['name'], $d['email'], $d['role'],
+                    $d['name'], $d['email'], $phone, $d['role'],
                     $d['team_id'] !== '' ? $d['team_id'] : null,
                     $d['is_active'] ?? 1,
                     $id,

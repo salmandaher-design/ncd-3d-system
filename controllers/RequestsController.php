@@ -137,6 +137,7 @@ class RequestsController extends Controller
         $files = (new RequestFile())->forRequest($id);
         $printers = Auth::isAdmin() ? (new Printer())->allSorted() : [];
         $filament = Auth::isAdmin() ? (new Filament())->options() : [];
+        $comments = (new RequestComment())->forRequest($id);
 
         $this->view('requests/show', [
             'pageTitle' => 'Request #' . $id,
@@ -144,7 +145,42 @@ class RequestsController extends Controller
             'files'     => $files,
             'printers'  => $printers,
             'filament'  => $filament,
+            'comments'  => $comments,
         ]);
+    }
+
+    /** Post a comment on a request (admin on any, member on their own). */
+    public function comment(string $id = '0'): void
+    {
+        $this->requireLogin();
+        $this->requireCsrf();
+        $id = (int) $id;
+
+        $request = $this->requests->find($id);
+        if (!$request) {
+            redirect('requests');
+        }
+        // Members may only comment on their own requests.
+        if (!Auth::isAdmin() && (int) $request['user_id'] !== Auth::id()) {
+            http_response_code(403);
+            $this->view('errors/403');
+            return;
+        }
+
+        $body = trim($_POST['body'] ?? '');
+        if ($body === '') {
+            Flash::set('error', 'Please write a message before sending.');
+            redirect('requests/show/' . $id);
+        }
+        if (mb_strlen($body) > 2000) {
+            $body = mb_substr($body, 0, 2000);
+        }
+
+        (new RequestComment())->add($id, Auth::id(), $body);
+        ActivityLog::record('request_comment', 'Commented on request #' . $id);
+        Flash::set('success', 'Comment added.');
+        // Jump straight to the thread.
+        redirect('requests/show/' . $id . '#comments');
     }
 
     /** Save admin-only technical fields (no status change). */

@@ -110,6 +110,46 @@ function filament_level($grams): string
     return '';
 }
 
+/** Absolute URL (scheme + host + path) for links shared outside the app. */
+function full_url(string $path = ''): string
+{
+    $https  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    $scheme = $https ? 'https' : 'http';
+    $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    return $scheme . '://' . $host . url($path);
+}
+
+/**
+ * Normalise a phone number to an international WhatsApp number (digits only).
+ * Syrian defaults: 09XXXXXXXX -> 9639XXXXXXXX, +963.. / 00963.. handled too.
+ * Returns '' when nothing usable was given.
+ */
+function wa_number(?string $raw): string
+{
+    $d = preg_replace('/\D+/', '', $raw ?? '');
+    if ($d === '') return '';
+    if (str_starts_with($d, '00')) {
+        $d = substr($d, 2);              // 00963... -> 963...
+    } elseif (str_starts_with($d, '0')) {
+        $d = '963' . substr($d, 1);      // 09... -> 9639...
+    } elseif (!str_starts_with($d, '963')) {
+        $d = '963' . $d;                 // bare local number -> add country code
+    }
+    return $d;
+}
+
+/**
+ * Build a WhatsApp click-to-chat link from a message + optional number.
+ * An empty number opens WhatsApp so the sender picks the recipient.
+ * (Named wa_url to avoid clashing with the news view's wa_link().)
+ */
+function wa_url(string $message, ?string $number = null): string
+{
+    return 'https://wa.me/' . wa_number($number) . '?text=' . rawurlencode($message);
+}
+
 /** Human readable file size. */
 function human_size(int $bytes): string
 {

@@ -27,6 +27,7 @@ class UsersController extends Controller
         $data = [
             'name'      => trim($_POST['name'] ?? ''),
             'email'     => trim($_POST['email'] ?? ''),
+            'phone'     => trim($_POST['phone'] ?? ''),
             'role'      => ($_POST['role'] ?? 'member') === 'admin' ? 'admin' : 'member',
             'team_id'   => $_POST['team_id'] ?? '',
             'password'  => $_POST['password'] ?? '',

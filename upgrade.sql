@@ -25,6 +25,24 @@ ALTER TABLE `request_files`
     ADD COLUMN IF NOT EXISTS `quantity` INT UNSIGNED NOT NULL DEFAULT 1 AFTER `file_type`;
 UPDATE `request_files` SET `quantity` = 1 WHERE `quantity` IS NULL OR `quantity` < 1;
 
+-- WhatsApp number for status pings.
+ALTER TABLE `users`
+    ADD COLUMN IF NOT EXISTS `phone` VARCHAR(30) DEFAULT NULL AFTER `email`;
+
+-- Two-way discussion thread per request.
+CREATE TABLE IF NOT EXISTS `request_comments` (
+    `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `request_id` INT UNSIGNED NOT NULL,
+    `user_id`    INT UNSIGNED DEFAULT NULL,
+    `body`       TEXT NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rc_request` (`request_id`),
+    KEY `idx_rc_user` (`user_id`),
+    CONSTRAINT `fk_rc_request` FOREIGN KEY (`request_id`) REFERENCES `requests`(`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rc_user`    FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`)    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Optional: give any EXISTING requests an automatic transaction number.
 -- New requests get one automatically from the app. Change 'NCD' if you set a
 -- different TRANSACTION_PREFIX in config/config.php.

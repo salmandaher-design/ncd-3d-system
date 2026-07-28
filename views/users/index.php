@@ -50,6 +50,7 @@ foreach ($teams as $t) { $teamName[$t['id']] = $t['name']; }
                                     data-set-id="<?= $u['id'] ?>"
                                     data-set-name="<?= e($u['name']) ?>"
                                     data-set-email="<?= e($u['email']) ?>"
+                                    data-set-phone="<?= e($u['phone'] ?? '') ?>"
                                     data-set-role="<?= e($u['role']) ?>"
                                     data-set-team_id="<?= e((string) ($u['team_id'] ?? '')) ?>"
                                     data-set-is_active="<?= (int) $u['is_active'] ?>">
@@ -87,6 +88,13 @@ foreach ($teams as $t) { $teamName[$t['id']] = $t['name']; }
                 <div class="field">
                     <label>Email <span style="color:var(--red)">*</span></label>
                     <input class="input" type="email" name="email" required>
+                </div>
+                <div class="field">
+                    <label>WhatsApp number
+                        <span class="hint" style="font-weight:400;">for status notifications</span>
+                    </label>
+                    <input class="input" type="tel" name="phone" placeholder="e.g. 0912345678 or +963912345678">
+                    <div class="hint">Used to open a pre-filled WhatsApp message when a request changes status.</div>
                 </div>
                 <div class="form-row">
                     <div class="field" style="margin:0;">
