@@ -1,18 +1,35 @@
 # ---- Pretty URLs: route everything through index.php ----
-RewriteEngine On
+# Wrapped in IfModule so the site still loads (instead of HTTP 500) on a host
+# where mod_rewrite is unavailable. The app also works without pretty URLs
+# via index.php?url=...
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 
-# If the request is not a real file or directory, hand it to the router.
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+    # When the app lives in a subfolder, let Apache work out the base itself.
+    # RewriteBase /
+
+    # If the request is not a real file or directory, hand it to the router.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+</IfModule>
 
 # ---- Basic hardening ----
 # Do not list directory contents.
-Options -Indexes
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
 
-# Block access to sensitive folders/files just in case.
-<FilesMatch "\.(sql|md|log)$">
-    Require all denied
+# Block access to sensitive files. Written for both Apache 2.4 (mod_authz_core)
+# and older 2.2 hosts, since the 2.4-only syntax returns a 500 on Apache 2.2.
+<FilesMatch "\.(sql|md|log|bak|ini)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
 
 # Default document
