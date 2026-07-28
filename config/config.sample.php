@@ -12,10 +12,10 @@
  */
 
 // ----- Database -----
-define('DB_HOST', 'localhost');      // InfinityFree example: sqlXXX.infinityfree.com
-define('DB_NAME', 'ncd_printing');   // InfinityFree example: epiz_XXXXXXX_ncd_printing
-define('DB_USER', 'root');           // InfinityFree example: epiz_XXXXXXX
-define('DB_PASS', '');               // your database password
+define('DB_HOST', 'sql306.infinityfree.com');      // InfinityFree example: sqlXXX.infinityfree.com
+define('DB_NAME', 'epiz_26515680_ncd_printing');   // InfinityFree example: if0_XXXXXXX_ncd
+define('DB_USER', 'epiz_26515680');           // InfinityFree example: if0_XXXXXXX
+define('DB_PASS', 'rGwsJ9EnB34Sm');               // your database password
 define('DB_CHARSET', 'utf8mb4');
 
 // ----- Application -----
