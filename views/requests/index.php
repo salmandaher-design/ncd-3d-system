@@ -16,7 +16,7 @@ $isAdmin = Auth::isAdmin();
     ?>
         <a class="btn2" href="<?= url('requests/printAll' . ($qs ? '?' . $qs : '')) ?>" target="_blank"
            title="Print these requests — one page each">
-            <i class="bi bi-printer"></i> <?= $isAdmin ? 'Print list' : 'Print all my requests' ?>
+            <i class="bi bi-printer"></i> <?= $isAdmin ? 'Print list' : 'Print all team requests' ?>
         </a>
     <?php endif; ?>
     <a class="btn2 primary" href="<?= url('requests/create') ?>"><i class="bi bi-plus-lg"></i> New Request</a>

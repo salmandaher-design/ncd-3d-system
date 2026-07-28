@@ -10,8 +10,8 @@
     <div class="spacer"></div>
     <?php if ($counts['total'] > 0): ?>
         <a class="btn2" href="<?= url('requests/printAll') ?>" target="_blank"
-           title="Print all your answered requests — one page each">
-            <i class="bi bi-printer"></i> Print all my requests
+           title="Print all your team's answered requests — one page each">
+            <i class="bi bi-printer"></i> Print all team requests
         </a>
     <?php endif; ?>
     <a class="btn2 primary" href="<?= url('requests/create') ?>"><i class="bi bi-plus-lg"></i> New Request</a>

@@ -414,8 +414,14 @@ class RequestsController extends Controller
             'priority' => $_GET['priority'] ?? '',
             'team_id'  => $_GET['team_id'] ?? '',
         ];
+        // Members print their whole team's requests. If somehow a member has no
+        // team, fall back to their own requests (never expose everyone's).
         if (!Auth::isAdmin()) {
-            $filters['user_id'] = Auth::id();
+            if (Auth::teamId()) {
+                $filters['team_id'] = Auth::teamId();
+            } else {
+                $filters['user_id'] = Auth::id();
+            }
         }
 
         $rf = new RequestFile();
