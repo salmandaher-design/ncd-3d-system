@@ -3,7 +3,7 @@
     * { box-sizing: border-box; }
     body {
         font-family: 'Cairo', 'Tajawal', 'Segoe UI', Tahoma, Arial, sans-serif;
-        color: #111; background: #e9edf2; margin: 0; line-height: 1.9;
+        color: #111; background: #e9edf2; margin: 0; line-height: 1.4;
     }
     .toolbar {
         position: sticky; top: 0; z-index: 5; display: flex; gap: 10px; justify-content: center;
