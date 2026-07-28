@@ -90,6 +90,7 @@ class Upload
                 'path'     => 'uploads/files/' . $storedName,
                 'size'     => (int) $one['size'],
                 'type'     => $ext,
+                'index'    => $i,   // position in the original files[] input (for pairing quantities[])
             ];
         }
         return $stored;

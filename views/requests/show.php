@@ -78,6 +78,9 @@ $isTerminalBad = in_array($st, ['Rejected', 'Cancelled'], true);
                             <strong><?= e($f['file_name']) ?></strong>
                             <small><?= strtoupper(e($f['file_type'])) ?> · <?= human_size((int) $f['file_size']) ?></small>
                         </div>
+                        <span class="pill" title="Prints required">
+                            <i class="bi bi-layers"></i> ×<?= (int) ($f['quantity'] ?? 1) ?>
+                        </span>
                         <a class="btn2 sm" href="<?= url('requests/download/' . $f['id']) ?>"><i class="bi bi-download"></i> Download</a>
                     </div>
                 <?php endforeach; endif; ?>

@@ -101,14 +101,24 @@
     const dz = document.querySelector('#fileDrop');
     if (fileInput && fileList) {
         function renderFiles() {
+            // Keep any quantities the user already typed when the list re-renders.
+            const prev = Array.from(fileList.querySelectorAll('input[name="quantities[]"]')).map(i => i.value);
             fileList.innerHTML = '';
-            Array.from(fileInput.files).forEach(function (f) {
+            Array.from(fileInput.files).forEach(function (f, idx) {
                 const div = document.createElement('div');
                 div.className = 'file-item';
-                div.innerHTML = '<i class="bi bi-file-earmark-zip"></i><span>' +
-                    f.name.replace(/</g, '&lt;') + '</span><span class="fsize">' + fmtSize(f.size) + '</span>';
+                div.innerHTML =
+                    '<i class="bi bi-file-earmark-zip"></i>' +
+                    '<span class="fname">' + f.name.replace(/</g, '&lt;') + '</span>' +
+                    '<span class="fsize">' + fmtSize(f.size) + '</span>' +
+                    '<label class="fqty" title="Number of prints required of this file">' +
+                        '<span>×</span>' +
+                        '<input type="number" name="quantities[]" min="1" step="1" value="' + (prev[idx] || 1) + '">' +
+                    '</label>';
                 fileList.appendChild(div);
             });
+            const hint = document.querySelector('#fileQtyHint');
+            if (hint) hint.style.display = fileInput.files.length ? 'block' : 'none';
         }
         fileInput.addEventListener('change', renderFiles);
         if (dz) {

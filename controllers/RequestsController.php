@@ -101,8 +101,12 @@ class RequestsController extends Controller
             'image_path'     => $imagePath,
         ]);
 
+        // Per-file "number of prints required" (quantities[] matches files[] by position).
+        $quantities = $_POST['quantities'] ?? [];
         $rf = new RequestFile();
         foreach ($files as $f) {
+            $idx = $f['index'] ?? null;
+            $f['quantity'] = ($idx !== null && isset($quantities[$idx])) ? (int) $quantities[$idx] : 1;
             $rf->add($id, $f);
         }
 

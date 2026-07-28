@@ -11,10 +11,11 @@ class RequestFile extends Model
 
     public function add(int $requestId, array $file): int
     {
+        $qty = isset($file['quantity']) ? max(1, (int) $file['quantity']) : 1;
         $this->run(
-            "INSERT INTO request_files (request_id, file_name, file_path, file_size, file_type, created_at)
-             VALUES (?,?,?,?,?,NOW())",
-            [$requestId, $file['original'], $file['path'], $file['size'], $file['type']]
+            "INSERT INTO request_files (request_id, file_name, file_path, file_size, file_type, quantity, created_at)
+             VALUES (?,?,?,?,?,?,NOW())",
+            [$requestId, $file['original'], $file['path'], $file['size'], $file['type'], $qty]
         );
         return $this->lastId();
     }

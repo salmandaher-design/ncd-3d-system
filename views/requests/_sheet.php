@@ -79,7 +79,13 @@ $today    = date('Y/m/d');
         <?php endif; ?>
         <tr><th>الوصف</th><td><?= ($request['description'] ?? '') !== '' ? nl2br(e($request['description'])) : '—' ?></td></tr>
         <?php if ($files): ?>
-            <tr><th>الملفات المرفقة</th><td><?php foreach ($files as $i => $f) { echo ($i ? '، ' : '') . e($f['file_name']); } ?></td></tr>
+            <?php $totalPrints = 0; foreach ($files as $f) { $totalPrints += max(1, (int) ($f['quantity'] ?? 1)); } ?>
+            <tr><th>الملفات المرفقة</th>
+                <td><?php foreach ($files as $i => $f) {
+                        echo ($i ? '، ' : '') . e($f['file_name']) . ' (عدد النسخ: ' . (int) ($f['quantity'] ?? 1) . ')';
+                    } ?></td>
+            </tr>
+            <tr><th>إجمالي عدد الطبعات</th><td><?= (int) $totalPrints ?></td></tr>
         <?php endif; ?>
         <?php if (!$isRejected && !empty($request['admin_notes'])): ?>
             <tr><th>ملاحظات الإدارة</th><td><?= nl2br(e($request['admin_notes'])) ?></td></tr>

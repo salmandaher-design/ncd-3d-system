@@ -19,6 +19,12 @@ ALTER TABLE `requests`
 ALTER TABLE `filament`
     ADD COLUMN IF NOT EXISTS `spools` INT UNSIGNED NOT NULL DEFAULT 1 AFTER `remaining_weight`;
 
+-- Number of prints required of each uploaded file.
+-- Existing files (previous orders) automatically get 1 via the default.
+ALTER TABLE `request_files`
+    ADD COLUMN IF NOT EXISTS `quantity` INT UNSIGNED NOT NULL DEFAULT 1 AFTER `file_type`;
+UPDATE `request_files` SET `quantity` = 1 WHERE `quantity` IS NULL OR `quantity` < 1;
+
 -- Optional: give any EXISTING requests an automatic transaction number.
 -- New requests get one automatically from the app. Change 'NCD' if you set a
 -- different TRANSACTION_PREFIX in config/config.php.

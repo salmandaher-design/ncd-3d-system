@@ -86,6 +86,9 @@
             <input type="file" id="fileInput" name="files[]" multiple
                    accept=".stl,.3mf,.zip" style="display:none;">
             <div class="file-list" id="fileList"></div>
+            <div class="hint" id="fileQtyHint" style="display:none; margin-top:8px;">
+                <i class="bi bi-info-circle"></i> Set <strong>×</strong> next to each file = how many prints you need of it.
+            </div>
         </div>
     </div>
 

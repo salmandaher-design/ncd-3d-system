@@ -146,6 +146,7 @@ CREATE TABLE `request_files` (
     `file_path`  VARCHAR(255) NOT NULL,
     `file_size`  INT UNSIGNED NOT NULL DEFAULT 0,
     `file_type`  VARCHAR(20)  DEFAULT NULL,
+    `quantity`   INT UNSIGNED NOT NULL DEFAULT 1,   -- number of prints required of this file
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `idx_rf_request` (`request_id`),
@@ -223,9 +224,9 @@ INSERT INTO `requests`
 
 -- Sample file rows (placeholders — the physical files are not shipped;
 -- real files appear here once users upload through the app).
-INSERT INTO `request_files` (`request_id`,`file_name`,`file_path`,`file_size`,`file_type`) VALUES
-(3,'gripper_v2.stl','uploads/files/sample_gripper_v2.stl',1548200,'stl'),
-(4,'wheel_hub.3mf','uploads/files/sample_wheel_hub.3mf',892400,'3mf');
+INSERT INTO `request_files` (`request_id`,`file_name`,`file_path`,`file_size`,`file_type`,`quantity`) VALUES
+(3,'gripper_v2.stl','uploads/files/sample_gripper_v2.stl',1548200,'stl',2),
+(4,'wheel_hub.3mf','uploads/files/sample_wheel_hub.3mf',892400,'3mf',1);
 
 -- News: the newest row is the dashboard banner, the rest are the archive.
 INSERT INTO `news` (`title`,`content`,`image_path`,`user_id`,`created_at`) VALUES

@@ -442,7 +442,15 @@ a:hover { color: var(--accent-hover); }
     background: var(--surface); font-size: 13px;
 }
 .file-item .bi { color: var(--accent); }
-.file-item .fsize { margin-left: auto; color: var(--text-faint); font-size: 12px; }
+.file-item .fname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-item .fsize { color: var(--text-faint); font-size: 12px; white-space: nowrap; }
+.file-item .fqty { display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 12.5px; }
+.file-item .fqty input {
+    width: 58px; padding: 4px 6px; text-align: center;
+    border: 1px solid var(--border-strong); border-radius: 6px;
+    background: var(--surface); color: var(--text); font-size: 13px;
+}
+.file-item .fqty input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
 
 /* ---------------- Charts (pure CSS) ---------------- */
 .bars { display: flex; align-items: flex-end; gap: 12px; height: 180px; padding-top: 10px; }
