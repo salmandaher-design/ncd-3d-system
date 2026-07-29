@@ -37,6 +37,7 @@ DROP TABLE IF EXISTS `news`;
 DROP TABLE IF EXISTS `print_fails`;
 DROP TABLE IF EXISTS `request_comments`;
 DROP TABLE IF EXISTS `request_files`;
+DROP TABLE IF EXISTS `print_jobs`;
 DROP TABLE IF EXISTS `requests`;
 DROP TABLE IF EXISTS `users`;
 DROP TABLE IF EXISTS `filament`;
@@ -106,6 +107,32 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
+-- print_jobs  (several requests merged onto ONE physical print plate)
+--   The job owns the printer, the filament and the total weight, so the
+--   filament is deducted once for the whole plate, not once per request.
+-- ---------------------------------------------------------------------
+CREATE TABLE `print_jobs` (
+    `id`                INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `title`             VARCHAR(160) NOT NULL,
+    `status`            ENUM('Planned','Approved','Printing','Completed','Cancelled') NOT NULL DEFAULT 'Planned',
+    `printer_id`        INT UNSIGNED DEFAULT NULL,
+    `filament_id`       INT UNSIGNED DEFAULT NULL,
+    `total_weight`      DECIMAL(8,1) DEFAULT NULL,
+    `filament_deducted` TINYINT(1) NOT NULL DEFAULT 0,
+    `notes`             TEXT DEFAULT NULL,
+    `created_by`        INT UNSIGNED DEFAULT NULL,
+    `created_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_job_status` (`status`),
+    KEY `idx_job_printer` (`printer_id`),
+    KEY `idx_job_filament` (`filament_id`),
+    CONSTRAINT `fk_job_printer`  FOREIGN KEY (`printer_id`)  REFERENCES `printers`(`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_job_filament` FOREIGN KEY (`filament_id`) REFERENCES `filament`(`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_job_creator`  FOREIGN KEY (`created_by`)  REFERENCES `users`(`id`)    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
 -- requests
 -- ---------------------------------------------------------------------
 CREATE TABLE `requests` (
@@ -125,6 +152,7 @@ CREATE TABLE `requests` (
     `printer_id`       INT UNSIGNED DEFAULT NULL,
     `filament_id`      INT UNSIGNED DEFAULT NULL,
     `filament_deducted` TINYINT(1) NOT NULL DEFAULT 0,
+    `job_id`           INT UNSIGNED DEFAULT NULL,   -- merged into this print job (plate)
     `created_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -133,10 +161,12 @@ CREATE TABLE `requests` (
     KEY `idx_req_status` (`status`),
     KEY `idx_req_printer`(`printer_id`),
     KEY `idx_req_fil`    (`filament_id`),
+    KEY `idx_req_job`    (`job_id`),
     CONSTRAINT `fk_req_user`    FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`)    ON DELETE SET NULL,
     CONSTRAINT `fk_req_team`    FOREIGN KEY (`team_id`)    REFERENCES `teams`(`id`)    ON DELETE SET NULL,
     CONSTRAINT `fk_req_printer` FOREIGN KEY (`printer_id`) REFERENCES `printers`(`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_req_fil`     FOREIGN KEY (`filament_id`)REFERENCES `filament`(`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_req_fil`     FOREIGN KEY (`filament_id`)REFERENCES `filament`(`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_req_job`     FOREIGN KEY (`job_id`)     REFERENCES `print_jobs`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

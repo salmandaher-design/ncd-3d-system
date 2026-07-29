@@ -413,6 +413,7 @@ class RequestsController extends Controller
             'status'   => $_GET['status'] ?? '',
             'priority' => $_GET['priority'] ?? '',
             'team_id'  => $_GET['team_id'] ?? '',
+            'job_id'   => $_GET['job_id'] ?? '',
         ];
         // Members print their whole team's requests. If somehow a member has no
         // team, fall back to their own requests (never expose everyone's).

@@ -68,6 +68,7 @@ if (!function_exists('navlink')) {
                 <div class="nav-label">Overview</div>
                 <?php navlink('dashboard', 'grid-1x2', 'Dashboard', $curr, 'dashboard'); ?>
                 <?php navlink('requests', 'inbox', 'Requests', $curr, 'requests', $badgePending); ?>
+                <?php navlink('jobs', 'stack', 'Print Jobs', $curr, 'jobs'); ?>
 
                 <?php navlink('news', 'newspaper', 'News', $curr, 'news'); ?>
 

@@ -61,6 +61,50 @@ CREATE TABLE IF NOT EXISTS `print_fails` (
     CONSTRAINT `fk_pf_team` FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ---------------------------------------------------------------------
+-- Print jobs: merge several requests onto one physical plate.
+-- The job owns printer + filament + total weight, so filament is deducted
+-- once per plate instead of once per request.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `print_jobs` (
+    `id`                INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `title`             VARCHAR(160) NOT NULL,
+    `status`            ENUM('Planned','Approved','Printing','Completed','Cancelled') NOT NULL DEFAULT 'Planned',
+    `printer_id`        INT UNSIGNED DEFAULT NULL,
+    `filament_id`       INT UNSIGNED DEFAULT NULL,
+    `total_weight`      DECIMAL(8,1) DEFAULT NULL,
+    `filament_deducted` TINYINT(1) NOT NULL DEFAULT 0,
+    `notes`             TEXT DEFAULT NULL,
+    `created_by`        INT UNSIGNED DEFAULT NULL,
+    `created_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_job_status` (`status`),
+    KEY `idx_job_printer` (`printer_id`),
+    KEY `idx_job_filament` (`filament_id`),
+    CONSTRAINT `fk_job_printer`  FOREIGN KEY (`printer_id`)  REFERENCES `printers`(`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_job_filament` FOREIGN KEY (`filament_id`) REFERENCES `filament`(`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_job_creator`  FOREIGN KEY (`created_by`)  REFERENCES `users`(`id`)    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `requests`
+    ADD COLUMN IF NOT EXISTS `job_id` INT UNSIGNED DEFAULT NULL AFTER `filament_deducted`,
+    ADD KEY IF NOT EXISTS `idx_req_job` (`job_id`);
+
+-- Foreign key for job_id, added only if it isn't there yet (so this whole
+-- file stays safe to re-run). The app also unlinks requests when a job is
+-- deleted, so this is a belt-and-braces safety net.
+SET @fk_exists = (
+    SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'requests'
+      AND CONSTRAINT_NAME = 'fk_req_job'
+);
+SET @sql = IF(@fk_exists = 0,
+    'ALTER TABLE `requests` ADD CONSTRAINT `fk_req_job` FOREIGN KEY (`job_id`) REFERENCES `print_jobs`(`id`) ON DELETE SET NULL',
+    'DO 0');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 -- Optional: give any EXISTING requests an automatic transaction number.
 -- New requests get one automatically from the app. Change 'NCD' if you set a
 -- different TRANSACTION_PREFIX in config/config.php.

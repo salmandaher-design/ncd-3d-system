@@ -160,6 +160,56 @@ if (isset($waAr[$st])) {
 
     <!-- RIGHT: workflow -->
     <div style="display:flex; flex-direction:column; gap:18px;">
+        <!-- Print job (plate) this request belongs to -->
+        <?php if (!empty($request['job_id'])): ?>
+            <div class="card2">
+                <div class="card2-head"><i class="bi bi-stack"></i> Part of a print job</div>
+                <div class="card2-body">
+                    <div style="font-weight:650; margin-bottom:4px;"><?= e($request['job_title'] ?? ('Job #' . $request['job_id'])) ?></div>
+                    <div class="hint" style="margin-bottom:10px;">
+                        This part is printed together with other requests on one plate
+                        (job status: <strong><?= e($request['job_status'] ?? '—') ?></strong>).
+                    </div>
+                    <?php if ($isAdmin): ?>
+                        <a class="btn2 sm block" href="<?= url('jobs/show/' . $request['job_id']) ?>">
+                            <i class="bi bi-box-arrow-up-right"></i> Open print job #<?= (int) $request['job_id'] ?>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php elseif ($isAdmin && in_array($st, ['Submitted', 'Approved'], true)): ?>
+            <!-- Merge this request with others onto one plate -->
+            <div class="card2">
+                <div class="card2-head"><i class="bi bi-stack"></i> Merge with other requests</div>
+                <div class="card2-body">
+                    <div class="hint" style="margin-bottom:10px;">
+                        Print this part together with others on a single plate. Filament is then
+                        deducted once for the whole plate.
+                    </div>
+                    <?php $openJobs = (new PrintJob())->openJobs(); ?>
+                    <form method="post" action="<?= url('jobs/merge') ?>" style="display:flex; flex-direction:column; gap:10px;">
+                        <?= Csrf::field() ?>
+                        <input type="hidden" name="request_ids[]" value="<?= $request['id'] ?>">
+                        <div class="field" style="margin:0;">
+                            <label>Add to</label>
+                            <select class="select" name="job_id">
+                                <option value="0">➕ A new print job</option>
+                                <?php foreach ($openJobs as $j): ?>
+                                    <option value="<?= $j['id'] ?>">#<?= $j['id'] ?> · <?= e($j['title']) ?> (<?= (int) $j['request_count'] ?> parts)</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="field" style="margin:0;">
+                            <label>Plate name <span class="hint" style="font-weight:400;">(new job only)</span></label>
+                            <input class="input" type="text" name="title" placeholder="e.g. Black PLA plate — <?= e(date('M j')) ?>">
+                        </div>
+                        <button class="btn2 block"><i class="bi bi-box-arrow-in-down"></i> Merge into plate</button>
+                        <div class="hint">You can add more requests from the job page or the requests list.</div>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- Timeline -->
         <div class="card2">
             <div class="card2-head"><i class="bi bi-diagram-3"></i> Progress</div>
@@ -230,7 +280,23 @@ if (isset($waAr[$st])) {
             </div>
         <?php endif; ?>
 
-        <?php if ($isAdmin): ?>
+        <?php if ($isAdmin && !empty($request['job_id'])): ?>
+            <!-- This request is driven by its print job, not individually -->
+            <div class="card2">
+                <div class="card2-head"><i class="bi bi-lightning-charge"></i> Workflow</div>
+                <div class="card2-body">
+                    <div class="empty" style="padding:16px;">
+                        <i class="bi bi-stack" style="color:var(--purple)"></i>
+                        This request is part of a print job, so it is approved, printed and completed
+                        together with the rest of the plate.
+                    </div>
+                    <a class="btn2 primary block" href="<?= url('jobs/show/' . $request['job_id']) ?>">
+                        <i class="bi bi-box-arrow-up-right"></i> Manage print job #<?= (int) $request['job_id'] ?>
+                    </a>
+                </div>
+            </div>
+
+        <?php elseif ($isAdmin): ?>
             <!-- ADMIN: workflow actions -->
             <div class="card2">
                 <div class="card2-head"><i class="bi bi-lightning-charge"></i> Workflow</div>
@@ -333,7 +399,22 @@ if (isset($waAr[$st])) {
                 </div>
             </div>
 
-            <!-- ADMIN: notes + estimate -->
+        <?php else: /* MEMBER actions */ ?>
+            <?php if ($st === 'Submitted'): ?>
+            <div class="card2">
+                <div class="card2-body">
+                    <form method="post" action="<?= url('requests/cancel/' . $request['id']) ?>" data-confirm="Cancel your request?">
+                        <?= Csrf::field() ?>
+                        <button class="btn2 danger block"><i class="bi bi-slash-circle"></i> Cancel my request</button>
+                    </form>
+                    <div class="hint" style="margin-top:8px;">You can cancel while the request is still awaiting approval.</div>
+                </div>
+            </div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <?php if ($isAdmin): ?>
+            <!-- ADMIN: notes + estimate (available whether or not it is on a plate) -->
             <div class="card2">
                 <div class="card2-head"><i class="bi bi-journal-text"></i> Notes &amp; estimate</div>
                 <div class="card2-body">
@@ -348,6 +429,7 @@ if (isset($waAr[$st])) {
                             <label>Estimated filament (g)</label>
                             <input class="input" type="number" step="0.1" min="0" name="estimated_weight"
                                    value="<?= e((string) ($request['estimated_weight'] ?? '')) ?>">
+                            <div class="hint">Used to pre-fill the plate weight when this request is merged into a job.</div>
                         </div>
                         <div class="field">
                             <label>Lab notes</label>
@@ -357,19 +439,6 @@ if (isset($waAr[$st])) {
                     </form>
                 </div>
             </div>
-
-        <?php else: /* MEMBER actions */ ?>
-            <?php if ($st === 'Submitted'): ?>
-            <div class="card2">
-                <div class="card2-body">
-                    <form method="post" action="<?= url('requests/cancel/' . $request['id']) ?>" data-confirm="Cancel your request?">
-                        <?= Csrf::field() ?>
-                        <button class="btn2 danger block"><i class="bi bi-slash-circle"></i> Cancel my request</button>
-                    </form>
-                    <div class="hint" style="margin-top:8px;">You can cancel while the request is still awaiting approval.</div>
-                </div>
-            </div>
-            <?php endif; ?>
         <?php endif; ?>
     </div>
 </div>

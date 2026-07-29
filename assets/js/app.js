@@ -142,6 +142,40 @@
         });
     }
 
+    /* ---------- Merge requests into a print job ---------- */
+    const mergeBar = document.querySelector('#mergeBar');
+    if (mergeBar) {
+        const picks = () => Array.from(document.querySelectorAll('[data-pick]'));
+        const countEl = document.querySelector('#pickCount');
+        const titleEl = document.querySelector('#mergeTitle');
+        const targetEl = document.querySelector('#mergeTarget');
+
+        function refresh() {
+            const n = picks().filter(c => c.checked).length;
+            if (countEl) countEl.textContent = n;
+            mergeBar.classList.toggle('show', n > 0);
+            // The plate name only applies when creating a NEW job.
+            if (titleEl && targetEl) titleEl.style.display = targetEl.value === '0' ? '' : 'none';
+        }
+
+        document.addEventListener('change', function (e) {
+            if (e.target.matches('[data-pick]')) refresh();
+            if (e.target === targetEl) refresh();
+            if (e.target.id === 'pickAll') {
+                picks().forEach(c => { c.checked = e.target.checked; });
+                refresh();
+            }
+        });
+        const clearBtn = document.querySelector('#pickClear');
+        if (clearBtn) clearBtn.addEventListener('click', function () {
+            picks().forEach(c => { c.checked = false; });
+            const all = document.querySelector('#pickAll');
+            if (all) all.checked = false;
+            refresh();
+        });
+        refresh();
+    }
+
     /* ---------- Wall of Spaghetti: "Press F to pay respects" ---------- */
     const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
     document.addEventListener('click', function (e) {

@@ -337,6 +337,41 @@ a:hover { color: var(--accent-hover); }
 .news-item .news-text { color: var(--text-muted); font-size: 13.5px; white-space: pre-wrap; }
 .news-item .news-date { color: var(--text-faint); font-size: 12px; margin-top: 6px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
+/* ---------------- Merge requests into a print job ---------------- */
+.merge-bar {
+    position: sticky; bottom: 16px; z-index: 1020;
+    display: none;                       /* shown by JS once something is ticked */
+    align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-top: 16px; padding: 12px 16px;
+    background: var(--surface); border: 1px solid var(--accent);
+    border-radius: var(--radius); box-shadow: var(--shadow-lg);
+}
+.merge-bar.show { display: flex; }
+.merge-bar .mb-count {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-soft); color: var(--accent);
+    padding: 6px 13px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    white-space: nowrap;
+}
+.merge-bar .mb-fields { display: flex; gap: 8px; flex: 1; min-width: 220px; flex-wrap: wrap; }
+.merge-bar .mb-fields .select { max-width: 260px; }
+.merge-bar .mb-fields .input { max-width: 220px; }
+.table2 input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+/* Pick list used on the job page */
+.pick-list { max-height: 340px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.pick-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background .1s;
+}
+.pick-row:last-child { border-bottom: none; }
+.pick-row:hover { background: var(--surface-2); }
+.pick-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+.pick-row .grow { flex: 1; min-width: 0; }
+.pick-row .grow strong { display: block; font-size: 13.5px; font-weight: 600; }
+.pick-row .grow small { color: var(--text-muted); font-size: 12px; }
+
 /* ---------------- Wall of Spaghetti ---------------- */
 .spaghetti-grid {
     display: grid; gap: 16px;

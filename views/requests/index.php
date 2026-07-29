@@ -76,6 +76,11 @@ $isAdmin = Auth::isAdmin();
             <table class="table2">
                 <thead>
                     <tr>
+                        <?php if ($isAdmin): ?>
+                            <th style="width:34px;">
+                                <input type="checkbox" id="pickAll" title="Select all mergeable">
+                            </th>
+                        <?php endif; ?>
                         <th>Project</th>
                         <?php if ($isAdmin): ?><th>Team</th><th>Requester</th><?php endif; ?>
                         <th>Priority</th>
@@ -87,10 +92,27 @@ $isAdmin = Auth::isAdmin();
                 </thead>
                 <tbody>
                 <?php if (!$requests): ?>
-                    <tr><td colspan="8"><div class="empty"><i class="bi bi-search"></i>No requests match your filters.</div></td></tr>
-                <?php else: foreach ($requests as $r): ?>
+                    <tr><td colspan="9"><div class="empty"><i class="bi bi-search"></i>No requests match your filters.</div></td></tr>
+                <?php else: foreach ($requests as $r):
+                    $mergeable = in_array($r['status'], ['Submitted', 'Approved'], true) && empty($r['job_id']); ?>
                     <tr onclick="location.href='<?= url('requests/show/' . $r['id']) ?>'" style="cursor:pointer;">
-                        <td><strong>#<?= $r['id'] ?></strong> · <?= e($r['project_name']) ?></td>
+                        <?php if ($isAdmin): ?>
+                            <td onclick="event.stopPropagation();">
+                                <?php if ($mergeable): ?>
+                                    <input type="checkbox" form="mergeForm" name="request_ids[]"
+                                           value="<?= $r['id'] ?>" data-pick>
+                                <?php elseif (!empty($r['job_id'])): ?>
+                                    <a href="<?= url('jobs/show/' . $r['job_id']) ?>" title="In print job #<?= (int) $r['job_id'] ?>"
+                                       style="color:var(--purple);"><i class="bi bi-stack"></i></a>
+                                <?php endif; ?>
+                            </td>
+                        <?php endif; ?>
+                        <td>
+                            <strong>#<?= $r['id'] ?></strong> · <?= e($r['project_name']) ?>
+                            <?php if (!empty($r['job_id'])): ?>
+                                <span class="pill" style="margin-left:6px;"><i class="bi bi-stack"></i> Job #<?= (int) $r['job_id'] ?></span>
+                            <?php endif; ?>
+                        </td>
                         <?php if ($isAdmin): ?>
                             <td class="muted"><?= e($r['team_name'] ?? '—') ?></td>
                             <td class="muted"><?= e($r['requester_name'] ?? '—') ?></td>
@@ -111,3 +133,37 @@ $isAdmin = Auth::isAdmin();
         </div>
     </div>
 </div>
+
+<?php if ($isAdmin):
+    $openJobs = (new PrintJob())->openJobs(); ?>
+<!-- Merge selected requests into a print job (one plate) -->
+<form method="post" action="<?= url('jobs/merge') ?>" id="mergeForm">
+    <?= Csrf::field() ?>
+    <div class="merge-bar" id="mergeBar">
+        <div class="mb-count">
+            <i class="bi bi-layers"></i>
+            <strong><span id="pickCount">0</span></strong> selected
+        </div>
+        <div class="mb-fields">
+            <select class="select" name="job_id" id="mergeTarget">
+                <option value="0">➕ New print job…</option>
+                <?php foreach ($openJobs as $j): ?>
+                    <option value="<?= $j['id'] ?>">
+                        Add to #<?= $j['id'] ?> · <?= e($j['title']) ?> (<?= (int) $j['request_count'] ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <input class="input" type="text" name="title" id="mergeTitle"
+                   placeholder="Plate name (optional)">
+        </div>
+        <button type="submit" class="btn2 primary"><i class="bi bi-box-arrow-in-down"></i> Merge</button>
+        <button type="button" class="btn2 ghost sm" id="pickClear" title="Clear selection"><i class="bi bi-x-lg"></i></button>
+    </div>
+</form>
+<div class="hint" style="margin-top:10px;">
+    <i class="bi bi-info-circle"></i>
+    Tick several requests to print them together on one plate. Only <strong>Submitted</strong> or
+    <strong>Approved</strong> requests that aren't already in a job can be merged.
+    <a href="<?= url('jobs') ?>">View all print jobs →</a>
+</div>
+<?php endif; ?>

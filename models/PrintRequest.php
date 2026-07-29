@@ -20,12 +20,15 @@ class PrintRequest extends Model
                        u.name  AS requester_name,
                        u.phone AS requester_phone,
                        p.name  AS printer_name,
-                       f.color AS filament_color
+                       f.color AS filament_color,
+                       j.title  AS job_title,
+                       j.status AS job_status
                 FROM requests r
                 LEFT JOIN teams t   ON t.id = r.team_id
                 LEFT JOIN users u   ON u.id = r.user_id
                 LEFT JOIN printers p ON p.id = r.printer_id
-                LEFT JOIN filament f ON f.id = r.filament_id";
+                LEFT JOIN filament f ON f.id = r.filament_id
+                LEFT JOIN print_jobs j ON j.id = r.job_id";
     }
 
     public function findFull(int $id): ?array
@@ -63,8 +66,29 @@ class PrintRequest extends Model
             $sql .= " AND r.user_id = ?";
             $params[] = $f['user_id'];
         }
+        if (!empty($f['job_id'])) {
+            $sql .= " AND r.job_id = ?";
+            $params[] = $f['job_id'];
+        }
 
         $sql .= " ORDER BY FIELD(r.priority,'High','Medium','Low'), r.created_at DESC";
+        return $this->fetchAll($sql, $params);
+    }
+
+    /**
+     * Requests that may still be merged into a plate: not finished, not
+     * rejected/cancelled, and not already in another job.
+     */
+    public function mergeable(?int $excludeJobId = null): array
+    {
+        $sql = $this->baseSelect() . " WHERE r.status IN ('Submitted','Approved') AND r.job_id IS NULL";
+        $params = [];
+        if ($excludeJobId !== null) {
+            $sql = $this->baseSelect() .
+                " WHERE r.status IN ('Submitted','Approved') AND (r.job_id IS NULL OR r.job_id = ?)";
+            $params[] = $excludeJobId;
+        }
+        $sql .= " ORDER BY r.color, FIELD(r.priority,'High','Medium','Low'), r.created_at DESC";
         return $this->fetchAll($sql, $params);
     }
 
