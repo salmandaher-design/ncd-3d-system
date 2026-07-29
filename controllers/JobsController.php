@@ -42,6 +42,7 @@ class JobsController extends Controller
             'pageTitle'  => 'Job #' . $id,
             'job'        => $job,
             'requests'   => $this->jobs->requests($id),
+            'byRequester'=> $this->jobs->requestsByRequester($id),
             'candidates' => $this->requests->mergeable(),
             'printers'   => (new Printer())->allSorted(),
             'filament'   => (new Filament())->options(),
@@ -110,7 +111,12 @@ class JobsController extends Controller
 
         ActivityLog::record('job_merge',
             'Merged ' . count($usable) . ' request(s) into print job #' . $targetJobId);
-        Flash::set('success', count($usable) . ' request(s) merged into this print job.');
+
+        // Tell the admin how many WhatsApp messages this saves.
+        $people = count($this->jobs->requestsByRequester($targetJobId));
+        Flash::set('success',
+            count($usable) . ' request(s) merged. Use "Notify requesters" to send '
+            . $people . ' WhatsApp message' . ($people === 1 ? '' : 's') . ' — one per member.');
         redirect('jobs/show/' . $targetJobId);
     }
 

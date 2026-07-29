@@ -70,7 +70,8 @@ class PrintJob extends Model
     public function requests(int $jobId): array
     {
         return $this->fetchAll(
-            "SELECT r.*, t.name AS team_name, u.name AS requester_name
+            "SELECT r.*, t.name AS team_name,
+                    u.name AS requester_name, u.phone AS requester_phone
              FROM requests r
              LEFT JOIN teams t ON t.id = r.team_id
              LEFT JOIN users u ON u.id = r.user_id
@@ -78,6 +79,29 @@ class PrintJob extends Model
              ORDER BY r.id ASC",
             [$jobId]
         );
+    }
+
+    /**
+     * The plate's requests grouped by the member who submitted them, so the
+     * admin can send ONE WhatsApp message per person instead of one per
+     * request. Returns [user_id => ['name','phone','requests'=>[...]]].
+     */
+    public function requestsByRequester(int $jobId): array
+    {
+        $grouped = [];
+        foreach ($this->requests($jobId) as $r) {
+            $uid = (int) ($r['user_id'] ?? 0);
+            if (!isset($grouped[$uid])) {
+                $grouped[$uid] = [
+                    'name'     => $r['requester_name'] ?? 'Unknown',
+                    'phone'    => $r['requester_phone'] ?? null,
+                    'team'     => $r['team_name'] ?? null,
+                    'requests' => [],
+                ];
+            }
+            $grouped[$uid]['requests'][] = $r;
+        }
+        return $grouped;
     }
 
     public function attach(int $jobId, int $requestId): void

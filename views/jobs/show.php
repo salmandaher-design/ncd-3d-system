@@ -1,5 +1,5 @@
 <?php
-/** @var array $job @var array $requests @var array $candidates
+/** @var array $job @var array $requests @var array $byRequester @var array $candidates
  *  @var array $printers @var array $filament @var float $estimated */
 $st = $job['status'];
 $jobStatusClass = [
@@ -15,6 +15,37 @@ $colors = array_values(array_unique(array_filter(array_map(
     fn($r) => trim((string) ($r['color'] ?? '')), $requests
 ))));
 $teams = array_values(array_unique(array_filter(array_column($requests, 'team_name'))));
+
+/**
+ * Build ONE Arabic WhatsApp message per member, listing every part of theirs
+ * on this plate — so the admin sends one message per person, not per request.
+ */
+$statusLine = [
+    'Planned'   => 'تم دمج طلباتكم التالية في لوحة طباعة واحدة، وسيتم تنفيذها معاً',
+    'Approved'  => 'تمت الموافقة على طلباتكم التالية وتم دمجها في لوحة طباعة واحدة',
+    'Printing'  => 'طلباتكم التالية قيد الطباعة الآن ضمن لوحة واحدة',
+    'Completed' => 'تم إنجاز طلباتكم التالية، ويمكنكم استلامها',
+    'Cancelled' => 'نعتذر، تم إلغاء لوحة الطباعة التي تضم طلباتكم التالية',
+][$st] ?? 'تحديث بخصوص طلباتكم التالية';
+
+$notifyMessage = function (array $g) use ($job, $statusLine): string {
+    $lines = ['مرحباً ' . $g['name'] . '،', $statusLine . ':', ''];
+    foreach ($g['requests'] as $r) {
+        $line = '• ' . $r['project_name'];
+        if (($r['transaction_no'] ?? '') !== '') {
+            $line .= ' (' . $r['transaction_no'] . ')';
+        }
+        $lines[] = $line;
+    }
+    $lines[] = '';
+    $lines[] = 'اسم اللوحة: ' . $job['title'];
+    if (!empty($job['filament_color'])) {
+        $lines[] = 'الفيلامنت: ' . $job['filament_color'];
+    }
+    $lines[] = 'لمتابعة طلباتكم: ' . full_url('requests');
+    $lines[] = '— ' . APP_FULL_NAME . ' · مخبر الروبوت والذكاء الصنعي';
+    return implode("\n", $lines);
+};
 ?>
 
 <div class="page-head">
@@ -183,6 +214,47 @@ $teams = array_values(array_unique(array_filter(array_column($requests, 'team_na
                 </dl>
             </div>
         </div>
+
+        <!-- Notify everyone on the plate: one message per member -->
+        <?php if ($byRequester): ?>
+        <div class="card2">
+            <div class="card2-head">
+                <i class="bi bi-whatsapp" style="color:#25D366;"></i> Notify requesters
+                <span class="badge2 status-submitted" style="margin-left:auto;"><?= count($byRequester) ?></span>
+            </div>
+            <div class="card2-body" style="display:flex; flex-direction:column; gap:10px;">
+                <div class="hint">
+                    One message per member covering <strong>all</strong> of their parts on this plate —
+                    <?= count($requests) ?> request<?= count($requests) === 1 ? '' : 's' ?> →
+                    <?= count($byRequester) ?> message<?= count($byRequester) === 1 ? '' : 's' ?>.
+                </div>
+                <?php foreach ($byRequester as $g): ?>
+                    <div class="notify-row">
+                        <div class="grow">
+                            <strong><?= e($g['name']) ?></strong>
+                            <small>
+                                <?= count($g['requests']) ?> part<?= count($g['requests']) === 1 ? '' : 's' ?>
+                                <?php if (!empty($g['phone'])): ?>
+                                    · <?= e($g['phone']) ?>
+                                <?php else: ?>
+                                    · <span style="color:var(--amber)">no number on file</span>
+                                <?php endif; ?>
+                            </small>
+                        </div>
+                        <a class="btn2 sm" style="background:#25D366; border-color:#25D366; color:#fff;"
+                           target="_blank" rel="noopener"
+                           href="<?= e(wa_url($notifyMessage($g), $g['phone'] ?? null)) ?>">
+                            <i class="bi bi-whatsapp"></i> Send
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+                <div class="hint">
+                    Opens WhatsApp with the message ready — you review and tap send. Add missing numbers
+                    on the <a href="<?= url('users') ?>">Members</a> page.
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Workflow -->
         <div class="card2">
