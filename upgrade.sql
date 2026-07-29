@@ -43,6 +43,24 @@ CREATE TABLE IF NOT EXISTS `request_comments` (
     CONSTRAINT `fk_rc_user`    FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`)    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The Wall of Spaghetti (hall of fame for failed prints).
+CREATE TABLE IF NOT EXISTS `print_fails` (
+    `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`      INT UNSIGNED DEFAULT NULL,
+    `team_id`      INT UNSIGNED DEFAULT NULL,
+    `caption`      VARCHAR(255) NOT NULL,
+    `image_path`   VARCHAR(255) DEFAULT NULL,
+    `grams`        DECIMAL(8,1) NOT NULL DEFAULT 0,
+    `printer_name` VARCHAR(80)  DEFAULT NULL,
+    `respects`     INT UNSIGNED NOT NULL DEFAULT 0,
+    `created_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_pf_team` (`team_id`),
+    KEY `idx_pf_user` (`user_id`),
+    CONSTRAINT `fk_pf_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pf_team` FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Optional: give any EXISTING requests an automatic transaction number.
 -- New requests get one automatically from the app. Change 'NCD' if you set a
 -- different TRANSACTION_PREFIX in config/config.php.

@@ -21,6 +21,8 @@
                         <span class="badge2 <?= $busy ? 'status-printing' : 'status-completed' ?>">
                             <i class="bi bi-<?= $busy ? 'printer' : 'check-circle' ?>"></i> <?= $busy ? 'Busy' : 'Idle' ?>
                         </span>
+                        <?php $mood = printer_mood($p); ?>
+                        <div class="printer-mood"><span class="em"><?= $mood['emoji'] ?></span> <?= e($mood['text']) ?></div>
                     </div>
                     <?php if ($isAdmin): ?>
                     <button class="btn2 sm" data-modal="#printerModal" data-title="Rename Printer"

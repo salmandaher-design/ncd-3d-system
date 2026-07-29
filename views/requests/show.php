@@ -36,6 +36,14 @@ if (isset($waAr[$st])) {
             Request #<?= $request['id'] ?> ·
             <span class="badge2 <?= status_class($st) ?>"><i class="bi bi-<?= status_icon($st) ?>"></i> <?= e($st) ?></span>
         </div>
+        <?php if ($st === 'Printing'):
+            $etaG = $request['actual_weight'] ?? $request['estimated_weight'] ?? 30; ?>
+            <div style="margin-top:8px;">
+                <span class="eta-fun" title="A very scientific estimate">
+                    <i class="bi bi-hourglass-split"></i> Ready in <?= e(funny_eta($etaG, (int) $request['id'])) ?>
+                </span>
+            </div>
+        <?php endif; ?>
     </div>
     <div class="spacer"></div>
     <?php if ($st !== 'Submitted'): ?>

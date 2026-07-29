@@ -11,6 +11,7 @@ $icons = [
     'printer_update' => 'printer', 'printer_free' => 'stop-circle',
     'news_publish' => 'megaphone', 'news_update' => 'pencil-square', 'news_delete' => 'trash',
     'request_comment' => 'chat-dots',
+    'spaghetti_post' => 'emoji-dizzy',
 ];
 ?>
 

@@ -141,4 +141,24 @@
             }
         });
     }
+
+    /* ---------- Wall of Spaghetti: "Press F to pay respects" ---------- */
+    const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-respect-url]');
+        if (!btn || btn.disabled) return;
+        btn.disabled = true;
+        fetch(btn.getAttribute('data-respect-url'), {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+        }).then(r => r.json()).then(function (d) {
+            if (d && d.ok) {
+                const c = btn.querySelector('.rcount');
+                if (c) c.textContent = d.respects;
+                btn.classList.add('done', 'pop');
+            } else {
+                btn.disabled = false;
+            }
+        }).catch(function () { btn.disabled = false; });
+    });
 })();

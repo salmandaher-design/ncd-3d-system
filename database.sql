@@ -34,6 +34,7 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `activity_logs`;
 DROP TABLE IF EXISTS `news`;
+DROP TABLE IF EXISTS `print_fails`;
 DROP TABLE IF EXISTS `request_comments`;
 DROP TABLE IF EXISTS `request_files`;
 DROP TABLE IF EXISTS `requests`;
@@ -172,6 +173,26 @@ CREATE TABLE `request_comments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
+-- print_fails  (the "Wall of Spaghetti" — hall of fame for failed prints)
+-- ---------------------------------------------------------------------
+CREATE TABLE `print_fails` (
+    `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`      INT UNSIGNED DEFAULT NULL,
+    `team_id`      INT UNSIGNED DEFAULT NULL,
+    `caption`      VARCHAR(255) NOT NULL,
+    `image_path`   VARCHAR(255) DEFAULT NULL,
+    `grams`        DECIMAL(8,1) NOT NULL DEFAULT 0,   -- filament sacrificed
+    `printer_name` VARCHAR(80)  DEFAULT NULL,
+    `respects`     INT UNSIGNED NOT NULL DEFAULT 0,   -- "F to pay respects"
+    `created_at`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_pf_team` (`team_id`),
+    KEY `idx_pf_user` (`user_id`),
+    CONSTRAINT `fk_pf_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_pf_team` FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
 -- news  (dashboard banner + news archive)
 --   The most recent row is shown as the dashboard banner; older rows
 --   automatically become "الأخبار القديمة".
@@ -251,6 +272,12 @@ INSERT INTO `news` (`title`,`content`,`image_path`,`user_id`,`created_at`) VALUE
 ('افتتاح مخبر الروبوت والذكاء الصنعي','يسر المركز الوطني للمتميزين الإعلان عن تجهيز مخبر الروبوت والذكاء الصنعي بطابعتين ثلاثيتي الأبعاد من نوع Bambu Lab، وهي متاحة الآن لجميع فرق الروبوتات عبر هذا النظام.',NULL,1,DATE_SUB(NOW(),INTERVAL 20 DAY)),
 ('تعليمات تسليم ملفات الطباعة','نرجو من جميع الفرق إرفاق ملفات STL أو 3MF بدقة، والتأكد من أبعاد القطعة قبل إرسال الطلب لتفادي إعادة الطباعة وهدر الفيلامنت.',NULL,1,DATE_SUB(NOW(),INTERVAL 7 DAY)),
 ('جاهزية المخبر لاستقبال طلبات الطباعة','المخبر جاهز لاستقبال طلباتكم لهذا الفصل. يُرجى تقديم الطلبات قبل موعد المسابقة بأسبوعين على الأقل لضمان إنجازها في الوقت المناسب.',NULL,1,DATE_SUB(NOW(),INTERVAL 1 DAY));
+
+-- Sample entries for the Wall of Spaghetti 🍝
+INSERT INTO `print_fails` (`user_id`,`team_id`,`caption`,`grams`,`printer_name`,`respects`,`created_at`) VALUES
+(2,1,'Attempted: gripper. Achieved: modern art.',48.0,'Printer 1',7,DATE_SUB(NOW(),INTERVAL 6 DAY)),
+(3,2,'Bed adhesion said no. The part said goodbye.',22.5,'Printer 2',3,DATE_SUB(NOW(),INTERVAL 3 DAY)),
+(4,3,'Spaghetti al dente — 3 hours well wasted.',95.0,'Printer 1',12,DATE_SUB(NOW(),INTERVAL 1 DAY));
 
 -- Sample discussion thread on request #3
 INSERT INTO `request_comments` (`request_id`,`user_id`,`body`,`created_at`) VALUES

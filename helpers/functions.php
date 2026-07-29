@@ -150,6 +150,62 @@ function wa_url(string $message, ?string $number = null): string
     return 'https://wa.me/' . wa_number($number) . '?text=' . rawurlencode($message);
 }
 
+/**
+ * A light-hearted "mood" for a printer based on its status and how long it
+ * has been in that state. Returns ['emoji' => .., 'text' => ..].
+ */
+function printer_mood(array $printer): array
+{
+    $idle = [
+        ['😴', 'Bored. Somebody give me a job.'],
+        ['🧘', 'Meditating. At peace. Empty.'],
+        ['🍵', 'Sipping tea, waiting for greatness.'],
+        ['💤', 'Powered on, dreaming of gcode.'],
+    ];
+    $working = [
+        ['🔨', 'Hard at work — do not disturb.'],
+        ['🎧', 'In the zone. Layer by layer.'],
+        ['🌀', 'Spinning filament into gold.'],
+        ['🤖', 'Beep boop. Printing intensifies.'],
+    ];
+    $sweating = [
+        ['🥵', 'Long job… I am sweating, please stand back.'],
+        ['😅', 'Still going. Send snacks.'],
+        ['🔥', 'Nozzle hot, morale hotter.'],
+    ];
+
+    if (($printer['status'] ?? 'Idle') !== 'Busy') {
+        $pool = $idle;
+    } else {
+        $started = strtotime($printer['updated_at'] ?? 'now');
+        $hours   = (time() - $started) / 3600;
+        $pool    = $hours >= 3 ? $sweating : $working;
+    }
+    // Stable per printer within the hour, so it doesn't flicker on every refresh.
+    $seed = (int) ($printer['id'] ?? 0) + (int) date('H');
+    $pick = $pool[$seed % count($pool)];
+    return ['emoji' => $pick[0], 'text' => $pick[1]];
+}
+
+/**
+ * A deliberately silly ETA derived from estimated filament weight.
+ * Returns a string like "≈ 3 cups of coffee ☕".
+ */
+function funny_eta($grams, int $seed = 0): string
+{
+    $minutes = max(5, (int) round(((float) $grams) * 2));   // ~2 min per gram, rough & cheerful
+    $units = [
+        [25, 'cups of coffee', '☕'],
+        [2.5, 'robot matches', '🤖'],
+        [40, 'episodes', '📺'],
+        [6, 'falafel sandwiches', '🧆'],
+        [90, 'football matches', '⚽'],
+    ];
+    $u = $units[$seed % count($units)];
+    $val = max(1, round($minutes / $u[0], ($minutes / $u[0] < 10 ? 1 : 0)));
+    return '≈ ' . $val . ' ' . $u[1] . ' ' . $u[2];
+}
+
 /** Human readable file size. */
 function human_size(int $bytes): string
 {

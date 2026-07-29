@@ -32,6 +32,28 @@
     </div>
 </div>
 
+<?php if (!empty($achievements)):
+    $earned = count(array_filter($achievements, fn($a) => $a['earned'])); ?>
+<div class="card2" style="margin-bottom:18px;">
+    <div class="card2-head"><i class="bi bi-trophy"></i> Achievements
+        <span class="badge2 status-approved" style="margin-left:auto;"><?= $earned ?>/<?= count($achievements) ?></span>
+    </div>
+    <div class="card2-body">
+        <div class="badge-grid">
+            <?php foreach ($achievements as $a): ?>
+                <div class="ach <?= $a['earned'] ? 'earned' : 'locked' ?>" title="<?= e($a['desc']) ?>">
+                    <span class="em"><?= $a['em'] ?></span>
+                    <div>
+                        <div class="a-name"><?= e($a['name']) ?></div>
+                        <div class="a-desc"><?= $a['earned'] ? 'Unlocked' : e($a['desc']) ?></div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="card2">
     <div class="card2-head"><i class="bi bi-inbox"></i> My Requests</div>
     <div class="card2-body tight">

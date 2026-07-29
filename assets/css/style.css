@@ -337,6 +337,62 @@ a:hover { color: var(--accent-hover); }
 .news-item .news-text { color: var(--text-muted); font-size: 13.5px; white-space: pre-wrap; }
 .news-item .news-date { color: var(--text-faint); font-size: 12px; margin-top: 6px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
+/* ---------------- Wall of Spaghetti ---------------- */
+.spaghetti-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.fail-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);
+    display: flex; flex-direction: column; transition: transform .12s, box-shadow .12s;
+}
+.fail-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.fail-img { width: 100%; height: 170px; object-fit: cover; background: var(--surface-2); display: block; }
+.fail-noimg { display: grid; place-items: center; font-size: 54px; }
+.fail-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.fail-caption { margin: 0; font-weight: 600; font-size: 14px; line-height: 1.4; }
+.fail-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 11.5px; color: var(--text-muted); margin-top: auto; }
+.fail-meta .bi { opacity: .8; }
+.fail-actions { display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.respect-btn .rcount {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px;
+    padding: 0 7px; font-size: 11px; font-weight: 700; margin-left: 2px;
+}
+.respect-btn.done { color: var(--purple); border-color: var(--purple); }
+.respect-btn.pop { animation: fpop .35s ease; }
+@keyframes fpop { 0%{transform:scale(1)} 40%{transform:scale(1.15)} 100%{transform:scale(1)} }
+
+/* ---------------- Printer mood ---------------- */
+.printer-mood {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 12px; font-size: 12.5px; color: var(--text-muted);
+    margin-top: 10px;
+}
+.printer-mood .em { font-size: 15px; }
+
+/* ---------------- Achievement badges ---------------- */
+.badge-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.ach {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 13px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface-2);
+    min-width: 150px;
+}
+.ach .em { font-size: 22px; }
+.ach .a-name { font-weight: 650; font-size: 13px; }
+.ach .a-desc { font-size: 11.5px; color: var(--text-faint); }
+.ach.locked { opacity: .5; filter: grayscale(1); }
+.ach.earned { border-color: var(--accent); background: var(--accent-soft); }
+
+/* Funny ETA pill */
+.eta-fun {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--amber-soft); color: var(--amber);
+    border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 600;
+}
+
 /* ---------------- Comment thread ---------------- */
 .comment { display: flex; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
 .comment .comment-body { flex: 1; min-width: 0; }
