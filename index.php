@@ -31,6 +31,12 @@ if (!file_exists(__DIR__ . '/config/config.php')) {
 }
 
 require __DIR__ . '/config/config.php';
+
+// Optional API keys (WhatsApp sender…). Never committed — see secrets.sample.php.
+if (file_exists(__DIR__ . '/config/secrets.php')) {
+    require __DIR__ . '/config/secrets.php';
+}
+
 require __DIR__ . '/config/database.php';
 
 // ----- Secure session -----

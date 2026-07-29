@@ -3,6 +3,10 @@
 # config/config.php on each server and fill in that server's details.
 config/config.php
 
+# API keys and session tokens (WhatsApp sender, etc). Copy
+# config/secrets.sample.php to config/secrets.php and fill it in per server.
+config/secrets.php
+
 # One-off data scripts: these hold real member names, login emails and
 # password hashes, so they must never be published. Keep them local.
 restore-data.sql

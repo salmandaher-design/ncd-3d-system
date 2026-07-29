@@ -120,6 +120,87 @@ class JobsController extends Controller
         redirect('jobs/show/' . $targetJobId);
     }
 
+    /**
+     * Send the plate's update to every requester through the WhatsApp API —
+     * one message per member, covering all of their parts.
+     * Falls back to the click-to-chat links when the API is not usable.
+     */
+    public function notifyAll(string $id = '0'): void
+    {
+        $this->requireAdmin();
+        $this->requireCsrf();
+        $id = (int) $id;
+
+        $job = $this->jobs->findFull($id);
+        if (!$job) {
+            redirect('jobs');
+        }
+        if (!WhatsAppApi::isConfigured()) {
+            Flash::set('warning', 'Automatic sending is unavailable — ' . WhatsAppApi::unavailableReason()
+                . ' Use the green Send buttons instead.');
+            redirect('jobs/show/' . $id);
+        }
+
+        $groups = $this->jobs->requestsByRequester($id);
+        $sent = 0; $failed = []; $skipped = 0;
+
+        foreach ($groups as $g) {
+            if (empty($g['phone'])) {
+                $skipped++;
+                continue;
+            }
+            $result = WhatsAppApi::send($g['phone'], $this->notifyText($job, $g));
+            if ($result['ok']) {
+                $sent++;
+            } else {
+                $failed[] = $g['name'] . ' (' . $result['error'] . ')';
+            }
+        }
+
+        ActivityLog::record('job_notify',
+            'WhatsApp: sent ' . $sent . ' of ' . count($groups) . ' for job #' . $id);
+
+        if ($sent > 0 && !$failed) {
+            Flash::set('success', 'Sent ' . $sent . ' WhatsApp message' . ($sent === 1 ? '' : 's') . '.'
+                . ($skipped ? ' ' . $skipped . ' member(s) have no number on file.' : ''));
+        } elseif ($sent > 0) {
+            Flash::set('warning', 'Sent ' . $sent . ', failed ' . count($failed) . ': ' . implode('; ', $failed));
+        } else {
+            Flash::set('error', 'Nothing was sent. ' . ($failed ? implode('; ', $failed)
+                : 'No member has a WhatsApp number on file.') . ' You can still use the green Send buttons.');
+        }
+        redirect('jobs/show/' . $id);
+    }
+
+    /** The same grouped Arabic text the click-to-chat links use. */
+    private function notifyText(array $job, array $group): string
+    {
+        $statusLine = [
+            'Planned'   => 'تم دمج طلباتكم التالية في لوحة طباعة واحدة، وسيتم تنفيذها معاً',
+            'Approved'  => 'تمت الموافقة على طلباتكم التالية وتم دمجها في لوحة طباعة واحدة',
+            'Printing'  => 'طلباتكم التالية قيد الطباعة الآن ضمن لوحة واحدة',
+            'Completed' => 'تم إنجاز طلباتكم التالية، ويمكنكم استلامها',
+            'Cancelled' => 'نعتذر، تم إلغاء لوحة الطباعة التي تضم طلباتكم التالية',
+        ][$job['status']] ?? 'تحديث بخصوص طلباتكم التالية';
+
+        $lines = ['مرحباً ' . $group['name'] . '،', $statusLine . ':', ''];
+        foreach ($group['requests'] as $r) {
+            $line = '• ' . $r['project_name'];
+            if (($r['transaction_no'] ?? '') !== '') {
+                $line .= ' (' . $r['transaction_no'] . ')';
+            }
+            $lines[] = $line;
+        }
+        $lines[] = '';
+        $lines[] = 'اسم اللوحة: ' . $job['title'];
+        if (!empty($job['filament_color'])) {
+            $lines[] = 'الفيلامنت: ' . $job['filament_color'];
+        }
+        $lines[] = 'لمتابعة طلباتكم: ' . full_url('requests');
+        $lines[] = '— ' . APP_FULL_NAME . ' · مخبر الروبوت والذكاء الصنعي';
+        return implode("\n", $lines);
+    }
+
     /** Remove one request from a plate (only while it is still being planned). */
     public function remove(string $jobId = '0', string $requestId = '0'): void
     {

@@ -248,9 +248,31 @@ $notifyMessage = function (array $g) use ($job, $statusLine): string {
                         </a>
                     </div>
                 <?php endforeach; ?>
+                <?php $apiReady = WhatsAppApi::isConfigured();
+                      $withPhone = count(array_filter($byRequester, fn($g) => !empty($g['phone']))); ?>
+                <hr class="divider" style="margin:4px 0;">
+                <?php if ($apiReady): ?>
+                    <form method="post" action="<?= url('jobs/notifyAll/' . $job['id']) ?>"
+                          data-confirm="Send <?= $withPhone ?> WhatsApp message(s) now, one per member?">
+                        <?= Csrf::field() ?>
+                        <button class="btn2 primary block" <?= $withPhone ? '' : 'disabled' ?>>
+                            <i class="bi bi-send-fill"></i> Send all automatically (<?= $withPhone ?>)
+                        </button>
+                    </form>
+                    <div class="hint">Sends straight through the API — no need to open WhatsApp.</div>
+                <?php else: ?>
+                    <div class="hint" style="display:flex; gap:6px;">
+                        <i class="bi bi-info-circle" style="color:var(--amber);"></i>
+                        <span>
+                            <strong>Automatic sending is off.</strong>
+                            <?= e(WhatsAppApi::unavailableReason()) ?>
+                            The green buttons above always work.
+                        </span>
+                    </div>
+                <?php endif; ?>
                 <div class="hint">
-                    Opens WhatsApp with the message ready — you review and tap send. Add missing numbers
-                    on the <a href="<?= url('users') ?>">Members</a> page.
+                    The green buttons open WhatsApp with the message ready — you review and tap send.
+                    Add missing numbers on the <a href="<?= url('users') ?>">Members</a> page.
                 </div>
             </div>
         </div>
